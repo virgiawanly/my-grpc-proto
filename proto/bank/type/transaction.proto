@@ -10,7 +10,7 @@ option go_package = "github.com/virgiawanly/my-grpc-proto/protogen/go/bank";
 enum TransactionType {
   TRANSACTION_TYPE_UNSPECIFIED = 0;
   TRANSACTION_TYPE_IN = 1;
-  TRANSACTION_TYPE_OUT = 1;
+  TRANSACTION_TYPE_OUT = 2;
 }
 
 message Transaction {
