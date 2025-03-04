@@ -76,7 +76,7 @@ protoc-go-gateway:
 # 	./proto/bank/*.proto ./proto/bank/type/*.proto \
 # 	./proto/resiliency/*.proto
 
-# .PHONY: protoc-openapiv2-gateway
+.PHONY: protoc-openapiv2-gateway
 protoc-openapiv2-gateway:
 	protoc -I . --openapiv2_out ./protogen/gateway/openapiv2 \
 	--openapiv2_opt logtostderr=true \

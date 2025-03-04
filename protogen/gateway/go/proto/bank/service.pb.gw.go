@@ -121,14 +121,12 @@ func request_BankService_SummarizeTransactions_0(ctx context.Context, marshaler 
 	return msg, metadata, err
 }
 
-func request_BankService_TransferMultiple_0(ctx context.Context, marshaler runtime.Marshaler, client extBank.BankServiceClient, req *http.Request, pathParams map[string]string) (extBank.BankService_TransferMultipleClient, runtime.ServerMetadata, chan error, error) {
+func request_BankService_TransferMultiple_0(ctx context.Context, marshaler runtime.Marshaler, client extBank.BankServiceClient, req *http.Request, pathParams map[string]string) (extBank.BankService_TransferMultipleClient, runtime.ServerMetadata, error) {
 	var metadata runtime.ServerMetadata
-	errChan := make(chan error, 1)
 	stream, err := client.TransferMultiple(ctx)
 	if err != nil {
 		grpclog.Errorf("Failed to start streaming: %v", err)
-		close(errChan)
-		return nil, metadata, errChan, err
+		return nil, metadata, err
 	}
 	dec := marshaler.NewDecoder(req.Body)
 	handleSend := func() error {
@@ -148,10 +146,8 @@ func request_BankService_TransferMultiple_0(ctx context.Context, marshaler runti
 		return nil
 	}
 	go func() {
-		defer close(errChan)
 		for {
 			if err := handleSend(); err != nil {
-				errChan <- err
 				break
 			}
 		}
@@ -162,10 +158,10 @@ func request_BankService_TransferMultiple_0(ctx context.Context, marshaler runti
 	header, err := stream.Header()
 	if err != nil {
 		grpclog.Errorf("Failed to get header from client: %v", err)
-		return nil, metadata, errChan, err
+		return nil, metadata, err
 	}
 	metadata.HeaderMD = header
-	return stream, metadata, errChan, nil
+	return stream, metadata, nil
 }
 
 func request_BankService_CreateAccount_0(ctx context.Context, marshaler runtime.Marshaler, client extBank.BankServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -359,20 +355,12 @@ func RegisterBankServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		resp, md, reqErrChan, err := request_BankService_TransferMultiple_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_BankService_TransferMultiple_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		go func() {
-			for err := range reqErrChan {
-				if err != nil && !errors.Is(err, io.EOF) {
-					runtime.HTTPStreamError(annotatedContext, mux, outboundMarshaler, w, req, err)
-				}
-			}
-		}()
 		forward_BankService_TransferMultiple_0(annotatedContext, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_BankService_CreateAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {

@@ -121,14 +121,12 @@ func request_HelloService_SayHelloToEveryone_0(ctx context.Context, marshaler ru
 	return msg, metadata, err
 }
 
-func request_HelloService_SayHelloContinuous_0(ctx context.Context, marshaler runtime.Marshaler, client extHello.HelloServiceClient, req *http.Request, pathParams map[string]string) (extHello.HelloService_SayHelloContinuousClient, runtime.ServerMetadata, chan error, error) {
+func request_HelloService_SayHelloContinuous_0(ctx context.Context, marshaler runtime.Marshaler, client extHello.HelloServiceClient, req *http.Request, pathParams map[string]string) (extHello.HelloService_SayHelloContinuousClient, runtime.ServerMetadata, error) {
 	var metadata runtime.ServerMetadata
-	errChan := make(chan error, 1)
 	stream, err := client.SayHelloContinuous(ctx)
 	if err != nil {
 		grpclog.Errorf("Failed to start streaming: %v", err)
-		close(errChan)
-		return nil, metadata, errChan, err
+		return nil, metadata, err
 	}
 	dec := marshaler.NewDecoder(req.Body)
 	handleSend := func() error {
@@ -148,10 +146,8 @@ func request_HelloService_SayHelloContinuous_0(ctx context.Context, marshaler ru
 		return nil
 	}
 	go func() {
-		defer close(errChan)
 		for {
 			if err := handleSend(); err != nil {
-				errChan <- err
 				break
 			}
 		}
@@ -162,10 +158,10 @@ func request_HelloService_SayHelloContinuous_0(ctx context.Context, marshaler ru
 	header, err := stream.Header()
 	if err != nil {
 		grpclog.Errorf("Failed to get header from client: %v", err)
-		return nil, metadata, errChan, err
+		return nil, metadata, err
 	}
 	metadata.HeaderMD = header
-	return stream, metadata, errChan, nil
+	return stream, metadata, nil
 }
 
 // RegisterHelloServiceHandlerServer registers the http handlers for service HelloService to "mux".
@@ -315,20 +311,12 @@ func RegisterHelloServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		resp, md, reqErrChan, err := request_HelloService_SayHelloContinuous_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_HelloService_SayHelloContinuous_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		go func() {
-			for err := range reqErrChan {
-				if err != nil && !errors.Is(err, io.EOF) {
-					runtime.HTTPStreamError(annotatedContext, mux, outboundMarshaler, w, req, err)
-				}
-			}
-		}()
 		forward_HelloService_SayHelloContinuous_0(annotatedContext, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
 	})
 	return nil
