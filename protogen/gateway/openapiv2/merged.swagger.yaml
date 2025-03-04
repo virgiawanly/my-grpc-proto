@@ -7,6 +7,7 @@ tags:
   - name: ResiliencyWithMetadataService
   - name: HelloService
   - name: BankService
+    description: Documentation for bank service
 host: localhost:8081
 schemes:
   - http
@@ -283,7 +284,7 @@ paths:
           collectionFormat: multi
       tags:
         - ResiliencyService
-  /bank.BankService/CreateAccount:
+  /bank/v1/account:
     post:
       operationId: BankService_CreateAccount
       responses:
@@ -303,12 +304,39 @@ paths:
             $ref: '#/definitions/bankCreateAccountRequest'
       tags:
         - BankService
-  /bank.BankService/FetchExchangeRates:
-    post:
+  /bank/v1/account/current_balance:
+    get:
+      summary: Summary for GetCurrentBalance
+      description: Description for GetCurrentBalance
+      operationId: BankService_GetCurrentBalance
+      responses:
+        "200":
+          description: Return current account balance
+          schema:
+            $ref: '#/definitions/bankCurrentBalanceResponse'
+        "400":
+          description: Returned when given account number is not exists
+          schema: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: account_number
+          description: Account number to get the balance
+          in: query
+          required: false
+          type: string
+      tags:
+        - BankService
+  /bank/v1/exchange_rates:
+    get:
+      summary: Summary for FetchExchangeRates
+      description: Description for FetchExchangeRates
       operationId: BankService_FetchExchangeRates
       responses:
         "200":
-          description: A successful response.(streaming responses)
+          description: Stream exchange rate for given currency pair
           schema:
             type: object
             properties:
@@ -317,39 +345,27 @@ paths:
               error:
                 $ref: '#/definitions/rpcStatus'
             title: Stream result of bankExchangeRateResponse
+        "400":
+          description: Returned when given currency pair is not exists
+          schema: {}
         default:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/bankExchangeRateRequest'
+        - name: from_currency
+          description: Exchange rate from currency
+          in: query
+          required: false
+          type: string
+        - name: to_currency
+          description: Exchange rate to currency
+          in: query
+          required: false
+          type: string
       tags:
         - BankService
-  /bank.BankService/GetCurrentBalance:
-    post:
-      operationId: BankService_GetCurrentBalance
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/bankCurrentBalanceResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/bankCurrentBalanceRequest'
-      tags:
-        - BankService
-  /bank.BankService/SummarizeTransactions:
+  /bank/v1/transaction/summarize:
     post:
       operationId: BankService_SummarizeTransactions
       responses:
@@ -370,7 +386,7 @@ paths:
             $ref: '#/definitions/bankTransaction'
       tags:
         - BankService
-  /bank.BankService/TransferMultiple:
+  /bank/v1/transaction/transfer_multiple:
     post:
       operationId: BankService_TransferMultiple
       responses:
@@ -507,38 +523,36 @@ definitions:
     properties:
       account_uuid:
         type: string
-  bankCurrentBalanceRequest:
-    type: object
-    properties:
-      account_number:
-        type: string
   bankCurrentBalanceResponse:
     type: object
     properties:
       amount:
         type: number
         format: double
+        example: 2593
+        description: Account's current balance
       json_name:
         $ref: '#/definitions/typeDate'
-  bankExchangeRateRequest:
-    type: object
-    properties:
-      from_currency:
-        type: string
-      to_currency:
-        type: string
+        description: Current date
+    description: Description for CurrentBalanceResponse
   bankExchangeRateResponse:
     type: object
     properties:
       from_currency:
         type: string
+        example: USD
+        description: Exchange rate from currency
       to_currency:
         type: string
+        example: IDR
+        description: Exchange rate to currency
       rate:
         type: number
         format: double
+        description: Exchange rate at particular timestamp
       timestamp:
         type: string
+        description: Current timestamp
   bankTransaction:
     type: object
     properties:
