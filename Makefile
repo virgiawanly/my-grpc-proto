@@ -61,27 +61,13 @@ protoc-go-gateway:
 	./proto/bank/*.proto ./proto/bank/type/*.proto \
 	./proto/resiliency/*.proto
 
-
-# .PHONY: protoc-openapiv2-gateway
-# protoc-openapiv2-gateway:
-# 	protoc -I . --openapiv2_out ./protogen/gateway/openapiv2 \
-# 	--openapiv2_opt logtostderr=true \
-# 	--openapiv2_opt output_format=yaml \
-# 	--openapiv2_opt grpc_api_configuration=./grpc-gateway/config.yml \
-#   --openapiv2_opt openapi_configuration=./grpc-gateway/config-openapi.yml \
-# 	--openapiv2_opt generate_unbound_methods=true \
-# 	--openapiv2_opt allow_merge=true \
-# 	--openapiv2_opt merge_file_name=merged \
-#   ./proto/hello/*.proto \
-# 	./proto/bank/*.proto ./proto/bank/type/*.proto \
-# 	./proto/resiliency/*.proto
-
 .PHONY: protoc-openapiv2-gateway
 protoc-openapiv2-gateway:
 	protoc -I . --openapiv2_out ./protogen/gateway/openapiv2 \
 	--openapiv2_opt logtostderr=true \
 	--openapiv2_opt output_format=yaml \
 	--openapiv2_opt grpc_api_configuration=./grpc-gateway/config.yml \
+  --openapiv2_opt openapi_configuration=./grpc-gateway/config-openapi.yml \
 	--openapiv2_opt generate_unbound_methods=true \
 	--openapiv2_opt allow_merge=true \
 	--openapiv2_opt merge_file_name=merged \
